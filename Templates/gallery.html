@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Gallery - Most Popular Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .gallery-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .image-item {
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 300px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        .image-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        .stats {
+            margin-top: 15px;
+        }
+        .progress-bar-container {
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            border-radius: 8px;
+            transition: width 0.4s ease;
+        }
+        .progress-bar.ai {
+            background-color: #007bff;
+        }
+        .progress-bar.human {
+            background-color: #28a745;
+        }
+        .progress-bar.favorite {
+            background-color: #ffc107;
+        }
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>Gallery - Most Popular Images</h1>
+    <div class="gallery-container" id="gallery-container">
+        {% if image_stats %}
+            {% for stat in image_stats %}
+            <div class="image-item">
+                <img src="{{ url_for('static', filename=stat['image']) }}" alt="Image">
+                <div class="stats">
+                    <p>Voted as AI: {{ stat['ai_votes'] }} times</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar ai" style="width: {{ (stat['ai_votes'] / (stat['ai_votes'] + stat['human_votes'] + 1)) * 100 }}%;"></div>
+                    </div>
+                    <p>Voted as Human: {{ stat['human_votes'] }} times</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar human" style="width: {{ (stat['human_votes'] / (stat['ai_votes'] + stat['human_votes'] + 1)) * 100 }}%;"></div>
+                    </div>
+                    <p>Marked as Favorite: {{ stat['favorite_count'] }} times</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar favorite" style="width: {{ (stat['favorite_count'] / (stat['favorite_count'] + 1)) * 100 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No images available in the gallery.</p>
+        {% endif %}
+    </div>
+    <a href="/" class="button">Go Back Home</a>
+</body>
+</html>

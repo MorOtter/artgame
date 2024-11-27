@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Art Game - Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            margin-top: 20px;
+            color: #333;
+        }
+        .image-item {
+            margin: 20px;
+            display: inline-block;
+            text-align: center;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            transition: transform 0.2s;
+        }
+        .image-item:hover {
+            transform: scale(1.05);
+        }
+        .image-item img {
+            width: 300px;
+            height: auto;
+            border-radius: 10px;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .button-group button {
+            width: 120px;
+            height: 40px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            background-color: #007bff;  /* Default blue color */
+            transition: background-color 0.2s;
+            pointer-events: auto;  /* Ensures the button remains clickable */
+        }
+        .button-group button.selected {
+            background-color: #0056b3;  /* Darker blue to indicate selected state */
+        }
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+        .favorite-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #28a745;  /* Default green color */
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            pointer-events: auto;  /* Ensures the button remains clickable */
+        }
+        .favorite-btn:hover {
+            background-color: #1e7e34;
+        }
+        .favorite-btn.selected {
+            background-color: gold;  /* Gold color to indicate selected favorite */
+            color: black;
+        }
+        input[type="text"] {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button[type="submit"] {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .vote-button {
+            background-color: lightgray; /* Default color */
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s; /* Smooth transition */
+            outline: none; /* Remove default outline */
+            appearance: none; /* Remove default button appearance */
+        }
+        .vote-button.selected {
+            background-color: orange; /* Color when selected */
+            color: white; /* Change text color if needed */
+        }
+        .vote-button:hover {
+            background-color: #d9d9d9; /* Lighten on hover */
+        }
+        .vote-button:active,
+        .vote-button:focus {
+            background-color: lightgray; /* Keep the default color on active and focus */
+            color: black; /* Ensure text color remains black */
+            box-shadow: none; /* Remove any default box shadow */
+        }
+    </style>
+    
+</head>
+<body>
+    <h1>Is it AI or Human?</h1>
+    <form id="game-form">
+        <div id="images-container">
+            {% for image in images %}
+                <div class="image-item">
+                    <img src="{{ url_for('static', filename=image) }}" alt="Image">
+                    <div class="button-group">
+                        <button type="button" class="ai-btn" data-image="{{ image }}">AI</button>
+                        <button type="button" class="human-btn" data-image="{{ image }}">Human</button>
+                    </div>
+                    <button type="button" class="favorite-btn" data-image="{{ image }}">Mark as Favorite</button>
+                </div>
+            {% endfor %}
+        </div>
+        <input type="text" name="name" placeholder="Enter your name">
+        <button type="submit">Submit</button>
+    </form>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const votes = [];
+            let favorite = null;
+    
+            // Selecting AI and Human buttons
+            const aiButtons = document.querySelectorAll(".ai-btn");
+            const humanButtons = document.querySelectorAll(".human-btn");
+            const favoriteButtons = document.querySelectorAll(".favorite-btn");
+    
+            console.log("Number of AI buttons:", aiButtons.length);
+            console.log("Number of Human buttons:", humanButtons.length);
+            console.log("Number of Favorite buttons:", favoriteButtons.length);
+    
+            // Ensure mutual exclusivity for AI and Human buttons
+            aiButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const image = button.dataset.image;
+    
+                    // Deselect human button if it is selected
+                    const humanButton = button.closest(".image-item").querySelector(".human-btn");
+                    if (humanButton.classList.contains("selected")) {
+                        humanButton.classList.remove("selected");
+                    }
+    
+                    // Toggle the AI button's selected state
+                    button.classList.toggle("selected");
+    
+                    // Update the votes array
+                    updateVotesArray(image, button.classList.contains("selected"), true);
+    
+                    // Remove selected style from human button if AI is selected
+                    if (button.classList.contains("selected")) {
+                        button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
+                        humanButton.style.backgroundColor = "#007bff";  // Reset to original for human
+                    } else {
+                        button.style.backgroundColor = "#007bff";  // Reset to original for AI
+                    }
+    
+                    console.log("Votes array:", votes);
+                });
+            });
+    
+            humanButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const image = button.dataset.image;
+    
+                    // Deselect AI button if it is selected
+                    const aiButton = button.closest(".image-item").querySelector(".ai-btn");
+                    if (aiButton.classList.contains("selected")) {
+                        aiButton.classList.remove("selected");
+                    }
+    
+                    // Toggle the Human button's selected state
+                    button.classList.toggle("selected");
+    
+                    // Update the votes array
+                    updateVotesArray(image, button.classList.contains("selected"), false);
+    
+                    // Remove selected style from AI button if Human is selected
+                    if (button.classList.contains("selected")) {
+                        button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
+                        aiButton.style.backgroundColor = "#007bff";  // Reset to original for AI
+                    } else {
+                        button.style.backgroundColor = "#007bff";  // Reset to original for Human
+                    }
+    
+                    console.log("Votes array:", votes);
+                });
+            });
+    
+            // Handle favorite button clicks
+            favoriteButtons.forEach(button => {
+                button.addEventListener("click", () => {
+                    const image = button.dataset.image;
+    
+                    // Deselect the current favorite if one exists
+                    if (favorite) {
+                        const currentFavoriteButton = document.querySelector(`.favorite-btn[data-image="${favorite}"]`);
+                        if (currentFavoriteButton) {
+                            currentFavoriteButton.classList.remove("selected");
+                            currentFavoriteButton.style.backgroundColor = "#28a745";  // Reset favorite button to green
+                        }
+                    }
+    
+                    // Mark the new favorite
+                    button.classList.add("selected");
+                    button.style.backgroundColor = "gold";  // Change to gold to indicate favorite
+                    favorite = image;
+    
+                    console.log("Favorite image:", favorite);
+                });
+            });
+    
+            // Helper function to update votes array
+            function updateVotesArray(image, isSelected, isAI) {
+                const existingVoteIndex = votes.findIndex(v => v.image === image);
+    
+                if (isSelected) {
+                    // If selected and not already in the array, add it
+                    if (existingVoteIndex === -1) {
+                        votes.push({ image: image, is_ai: isAI });
+                    } else {
+                        // Update the existing vote with the correct choice (AI or Human)
+                        votes[existingVoteIndex].is_ai = isAI;
+                    }
+                } else {
+                    // If deselected, remove it from the array
+                    if (existingVoteIndex !== -1) {
+                        votes.splice(existingVoteIndex, 1);
+                    }
+                }
+            }
+    
+            // Handle form submission
+            document.getElementById("game-form").onsubmit = async (e) => {
+                e.preventDefault();
+                const name = e.target.name.value;
+    
+                if (!name) {
+                    alert("Please enter your name before submitting!");
+                    return;
+                }
+    
+                if (votes.length < 10) {
+                    alert("Please make a selection for all 10 images.");
+                    return;
+                }
+    
+                if (!favorite) {
+                    alert("Please select one favorite picture.");
+                    return;
+                }
+    
+                try {
+                    console.log("Submitting data...");
+                    const response = await fetch("/submit", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ votes, favorite, name }),
+                    });
+    
+                    if (!response.ok) {
+                        throw new Error("Failed to submit your quiz. Please try again.");
+                    }
+    
+                    const result = await response.json();
+                    alert(`Your score: ${result.score}`);
+                    window.location.href = "/leaderboard";
+                } catch (error) {
+                    console.error("Error submitting data:", error);
+                    alert("An error occurred while submitting your results.");
+                }
+            };
+        });
+    </script>
+    
+    
+    
+</body>
+</html>
