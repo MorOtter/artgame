@@ -118,11 +118,19 @@
             color: black; /* Ensure text color remains black */
             box-shadow: none; /* Remove any default box shadow */
         }
+        .game-description {
+            margin: 20px;
+            font-size: 16px;
+            color: #555; /* A softer color for the description text */
+        }
     </style>
     
 </head>
 <body>
     <h1>Is it AI or Human?</h1>
+    <div class="game-description">
+        <p>Welcome to the "Is it AI or Human?" game! In this game, you will be presented with a series of ten images from the bank of fifty. Your task is to determine whether each image was created by an AI or a human artist. For each image, you can select either "AI" or "Human" as your answer. Additionally please mark your favorite image by clicking the "Mark as Favorite" button. Once you've made your selections for all images, please enter your name and click "Submit" to see your score!</p>
+    </div>
     <form id="game-form">
         <div id="images-container">
             {% for image in images %}
