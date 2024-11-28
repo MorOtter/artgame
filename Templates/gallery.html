@@ -54,7 +54,7 @@
         .progress-bar.ai {
             background-color: #007bff;
         }
-        .progress-bar.human {
+        .progress-bar.Human {
             background-color: #28a745;
         }
         .progress-bar.favorite {
@@ -88,11 +88,11 @@
                 <div class="stats">
                     <p>Voted as AI: {{ stat['ai_votes'] }} times</p>
                     <div class="progress-bar-container">
-                        <div class="progress-bar ai" style="width: {{ (stat['ai_votes'] / (stat['ai_votes'] + stat['human_votes'] + 1)) * 100 }}%;"></div>
+                        <div class="progress-bar ai" style="width: {{ (stat['ai_votes'] / (stat['ai_votes'] + stat['Human_votes'] + 1)) * 100 }}%;"></div>
                     </div>
-                    <p>Voted as Human: {{ stat['human_votes'] }} times</p>
+                    <p>Voted as Human: {{ stat['Human_votes'] }} times</p>
                     <div class="progress-bar-container">
-                        <div class="progress-bar human" style="width: {{ (stat['human_votes'] / (stat['ai_votes'] + stat['human_votes'] + 1)) * 100 }}%;"></div>
+                        <div class="progress-bar Human" style="width: {{ (stat['Human_votes'] / (stat['ai_votes'] + stat['Human_votes'] + 1)) * 100 }}%;"></div>
                     </div>
                     <p>Marked as Favorite: {{ stat['favorite_count'] }} times</p>
                     <div class="progress-bar-container">
