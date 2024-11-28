@@ -84,7 +84,7 @@
         {% if image_stats %}
             {% for stat in image_stats %}
             <div class="image-item">
-                <img src="{{ url_for('Static', filename='Human/image1.jpg') }}" alt="Image">
+                <img src="{{ url_for('static', filename='Human/image1.jpg') }}" alt="Image">
                 <div class="stats">
                     <p>Voted as AI: {{ stat['AI_votes'] }} times</p>
                     <div class="progress-bar-container">
