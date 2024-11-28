@@ -6,9 +6,9 @@ import sqlite3
 app = Flask(__name__)
 
 # Load images
-HUMAN_DIR = "static/human/"
+HUMAN_DIR = "static/Human/"
 AI_DIR = "static/ai/"
-human_images = [f"human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
 ai_images = [f"ai/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
 
 DATABASE = 'database.db'  # Path for the SQLite database file
@@ -36,16 +36,16 @@ def init_db():
             CREATE TABLE IF NOT EXISTS image_stats (
                 image TEXT PRIMARY KEY,
                 ai_votes INTEGER DEFAULT 0,
-                human_votes INTEGER DEFAULT 0,
+                Human_votes INTEGER DEFAULT 0,
                 favorite_count INTEGER DEFAULT 0
             );
         ''')
 
         # Populate image stats table with images if not already present
-        images = human_images + ai_images
+        images = Human_images + ai_images
         for image in images:
             conn.execute('''
-                INSERT OR IGNORE INTO image_stats (image, ai_votes, human_votes, favorite_count)
+                INSERT OR IGNORE INTO image_stats (image, ai_votes, Human_votes, favorite_count)
                 VALUES (?, 0, 0, 0)
             ''', (image,))
 
@@ -57,7 +57,7 @@ def home():
 
 @app.route("/quiz")
 def quiz():
-    images = random.sample(human_images + ai_images, 10)
+    images = random.sample(Human_images + ai_images, 10)
     return render_template("index.html", images=images)
 
 @app.route("/gallery")
@@ -103,7 +103,7 @@ def submit():
             if guessed_ai:
                 conn.execute('UPDATE image_stats SET ai_votes = ai_votes + 1 WHERE image = ?', (image,))
             else:
-                conn.execute('UPDATE image_stats SET human_votes = human_votes + 1 WHERE image = ?', (image,))
+                conn.execute('UPDATE image_stats SET Human_votes = Human_votes + 1 WHERE image = ?', (image,))
 
         # Update favorite count
         conn.execute('UPDATE image_stats SET favorite_count = favorite_count + 1 WHERE image = ?', (favorite,))
