@@ -50,7 +50,7 @@ def init_db():
         ''')
 
         # Populate image stats table with images if not already present
-        images = Human_images + AI_images
+        images = Human_images + ai_images
         for image in images:
             conn.execute('''
                 INSERT OR IGNORE INTO image_stats (image, AI_votes, Human_votes, favorite_count)
@@ -66,25 +66,25 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
-        # Get the list of image filenames from the Human and AI directories
+        # Define the directories for Human and AI images
         human_images_dir = 'static/Human'
         ai_images_dir = 'static/AI'
 
         # List all files in the directories
         Human_images = [f for f in os.listdir(human_images_dir) if os.path.isfile(os.path.join(human_images_dir, f))]
-        ai_images = [f for f in os.listdir(ai_images_dir) if os.path.isfile(os.path.join(ai_images_dir, f))]
+        AI_images = [f for f in os.listdir(ai_images_dir) if os.path.isfile(os.path.join(ai_images_dir, f))]
 
-        # Ensure that Human_images and ai_images are defined and not empty
-        if not Human_images or not ai_images:
+        # Ensure that Human_images and AI_images are defined and not empty
+        if not Human_images or not AI_images:
             raise ValueError("Image lists are empty or not defined.")
 
+        # Combine the images
+        images = Human_images + AI_images
+
         # Randomly sample images
-        images = random.sample(Human_images + ai_images, 10)  # Sample from the combined list
+        sampled_images = random.sample(images, 10)  # Sample 10 images
 
-        # Create full paths for the images to pass to the template
-        image_paths = [os.path.join('static/Human', img) if img in Human_images else os.path.join('static/AI', img) for img in images]
-
-        return render_template("index.html", images=image_paths)
+        return render_template("index.html", images=sampled_images)
     except Exception as e:
         print("Error in quiz route:", e)  # Print the error to the logs
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
@@ -125,14 +125,18 @@ def submit():
             is_ai = "AI/" in image
 
             # Update correct score count
-            if guessed_AI == is_AI:
+            if guessed_AI == is_ai:
                 correct += 1
 
             # Update image stats in the database
-            if guessed_AI:
-                conn.execute('UPDATE image_stats SET AI_votes = AI_votes + 1 WHERE image = ?', (image,))
-            else:
-                conn.execute('UPDATE image_stats SET Human_votes = Human_votes + 1 WHERE image = ?', (image,))
+            try:
+                if guessed_AI:
+                    conn.execute('UPDATE image_stats SET AI_votes = AI_votes + 1 WHERE image = ?', (image,))
+                else:
+                    conn.execute('UPDATE image_stats SET Human_votes = Human_votes + 1 WHERE image = ?', (image,))
+                conn.commit()  # Commit the changes to the database
+            except Exception as e:
+                print(f"Error updating image stats for {image}: {e}")  # Log the error
 
         # Update favorite count
         conn.execute('UPDATE image_stats SET favorite_count = favorite_count + 1 WHERE image = ?', (favorite,))
