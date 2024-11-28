@@ -135,9 +135,9 @@
         <div id="images-container">
             {% for image in images %}
                 <div class="image-item">
-                    <img src="{{ url_for('static', filename=image) }}" alt="Image">
+                    <img src="{{ url_for('Static', filename=image) }}" alt="Image">
                     <div class="button-group">
-                        <button type="button" class="ai-btn" data-image="{{ image }}">AI</button>
+                        <button type="button" class="AI-btn" data-image="{{ image }}">AI</button>
                         <button type="button" class="Human-btn" data-image="{{ image }}">Human</button>
                     </div>
                     <button type="button" class="favorite-btn" data-image="{{ image }}">Mark as Favorite</button>
@@ -153,23 +153,23 @@
             let favorite = null;
     
             // Selecting AI and Human buttons
-            const aiButtons = document.querySelectorAll(".ai-btn");
-            const humanButtons = document.querySelectorAll(".Human-btn");
+            const AIButtons = document.querySelectorAll(".AI-btn");
+            const HumanButtons = document.querySelectorAll(".Human-btn");
             const favoriteButtons = document.querySelectorAll(".favorite-btn");
     
-            console.log("Number of AI buttons:", aiButtons.length);
-            console.log("Number of Human buttons:", humanButtons.length);
+            console.log("Number of AI buttons:", AIButtons.length);
+            console.log("Number of Human buttons:", HumanButtons.length);
             console.log("Number of Favorite buttons:", favoriteButtons.length);
     
             // Ensure mutual exclusivity for AI and Human buttons
-            aiButtons.forEach(button => {
+            AIButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const image = button.dataset.image;
     
                     // Deselect human button if it is selected
-                    const humanButton = button.closest(".image-item").querySelector(".Human-btn");
-                    if (humanButton.classList.contains("selected")) {
-                        humanButton.classList.remove("selected");
+                    const HumanButton = button.closest(".image-item").querySelector(".Human-btn");
+                    if (HumanButton.classList.contains("selected")) {
+                        HumanButton.classList.remove("selected");
                     }
     
                     // Toggle the AI button's selected state
@@ -181,7 +181,7 @@
                     // Remove selected style from human button if AI is selected
                     if (button.classList.contains("selected")) {
                         button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
-                        humanButton.style.backgroundColor = "#007bff";  // Reset to original for human
+                        HumanButton.style.backgroundColor = "#007bff";  // Reset to original for human
                     } else {
                         button.style.backgroundColor = "#007bff";  // Reset to original for AI
                     }
@@ -190,14 +190,14 @@
                 });
             });
     
-            humanButtons.forEach(button => {
+            HumanButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const image = button.dataset.image;
     
                     // Deselect AI button if it is selected
-                    const aiButton = button.closest(".image-item").querySelector(".ai-btn");
-                    if (aiButton.classList.contains("selected")) {
-                        aiButton.classList.remove("selected");
+                    const aiButton = button.closest(".image-item").querySelector(".AI-btn");
+                    if (AIButton.classList.contains("selected")) {
+                        AIButton.classList.remove("selected");
                     }
     
                     // Toggle the Human button's selected state
@@ -209,7 +209,7 @@
                     // Remove selected style from AI button if Human is selected
                     if (button.classList.contains("selected")) {
                         button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
-                        aiButton.style.backgroundColor = "#007bff";  // Reset to original for AI
+                        AIButton.style.backgroundColor = "#007bff";  // Reset to original for AI
                     } else {
                         button.style.backgroundColor = "#007bff";  // Reset to original for Human
                     }
@@ -248,10 +248,10 @@
                 if (isSelected) {
                     // If selected and not already in the array, add it
                     if (existingVoteIndex === -1) {
-                        votes.push({ image: image, is_ai: isAI });
+                        votes.push({ image: image, is_AI: isAI });
                     } else {
                         // Update the existing vote with the correct choice (AI or Human)
-                        votes[existingVoteIndex].is_ai = isAI;
+                        votes[existingVoteIndex].is_AI = isAI;
                     }
                 } else {
                     // If deselected, remove it from the array
