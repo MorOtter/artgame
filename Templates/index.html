@@ -129,7 +129,7 @@
 <body>
     <h1>Is it AI or Human?</h1>
     <div class="game-description">
-        <p>Welcome to the "Is it AI or Human?" game! In this game, you will be presented with a series of ten images from the bank of fifty. Your task is to determine whether each image was created by an AI or a human artist. For each image, you can select either "AI" or "Human" as your answer. Additionally please mark your favorite image by clicking the "Mark as Favorite" button. Once you've made your selections for all images, please enter your name and click "Submit" to see your score!</p>
+        <p>Welcome to the "Is it AI or Human?" game! In this game, you will be presented with a series of ten images from the bank of fifty. Your task is to determine whether each image was created by an AI or a Human artist. For each image, you can select either "AI" or "Human" as your answer. Additionally please mark your favorite image by clicking the "Mark as Favorite" button. Once you've made your selections for all images, please enter your name and click "Submit" to see your score!</p>
     </div>
     <form id="game-form">
         <div id="images-container">
@@ -138,7 +138,7 @@
                     <img src="{{ url_for('static', filename=image) }}" alt="Image">
                     <div class="button-group">
                         <button type="button" class="ai-btn" data-image="{{ image }}">AI</button>
-                        <button type="button" class="human-btn" data-image="{{ image }}">Human</button>
+                        <button type="button" class="Human-btn" data-image="{{ image }}">Human</button>
                     </div>
                     <button type="button" class="favorite-btn" data-image="{{ image }}">Mark as Favorite</button>
                 </div>
@@ -154,7 +154,7 @@
     
             // Selecting AI and Human buttons
             const aiButtons = document.querySelectorAll(".ai-btn");
-            const humanButtons = document.querySelectorAll(".human-btn");
+            const humanButtons = document.querySelectorAll(".Human-btn");
             const favoriteButtons = document.querySelectorAll(".favorite-btn");
     
             console.log("Number of AI buttons:", aiButtons.length);
@@ -167,7 +167,7 @@
                     const image = button.dataset.image;
     
                     // Deselect human button if it is selected
-                    const humanButton = button.closest(".image-item").querySelector(".human-btn");
+                    const humanButton = button.closest(".image-item").querySelector(".Human-btn");
                     if (humanButton.classList.contains("selected")) {
                         humanButton.classList.remove("selected");
                     }
@@ -303,7 +303,6 @@
             };
         });
     </script>
-    
     
     
 </body>
