@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Art Game - Quiz</title>
     <style>
         body {
@@ -124,7 +126,6 @@
             color: #555; /* A softer color for the description text */
         }
     </style>
-    
 </head>
 <body>
     <h1>Is it AI or Human?</h1>
@@ -135,7 +136,7 @@
         <div id="images-container">
             {% for image in images %}
                 <div class="image-item">
-                    <img src="{{ url_for('Static', filename=image) }}" alt="Image">
+                    <img src="{{ url_for('static', filename=image) }}" alt="Image">
                     <div class="button-group">
                         <button type="button" class="AI-btn" data-image="{{ image }}">AI</button>
                         <button type="button" class="Human-btn" data-image="{{ image }}">Human</button>
@@ -151,33 +152,33 @@
         document.addEventListener("DOMContentLoaded", () => {
             const votes = [];
             let favorite = null;
-    
+
             // Selecting AI and Human buttons
             const AIButtons = document.querySelectorAll(".AI-btn");
             const HumanButtons = document.querySelectorAll(".Human-btn");
             const favoriteButtons = document.querySelectorAll(".favorite-btn");
-    
+
             console.log("Number of AI buttons:", AIButtons.length);
             console.log("Number of Human buttons:", HumanButtons.length);
             console.log("Number of Favorite buttons:", favoriteButtons.length);
-    
+
             // Ensure mutual exclusivity for AI and Human buttons
             AIButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const image = button.dataset.image;
-    
+
                     // Deselect human button if it is selected
                     const HumanButton = button.closest(".image-item").querySelector(".Human-btn");
                     if (HumanButton.classList.contains("selected")) {
                         HumanButton.classList.remove("selected");
                     }
-    
+
                     // Toggle the AI button's selected state
                     button.classList.toggle("selected");
-    
+
                     // Update the votes array
                     updateVotesArray(image, button.classList.contains("selected"), true);
-    
+
                     // Remove selected style from human button if AI is selected
                     if (button.classList.contains("selected")) {
                         button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
@@ -185,44 +186,44 @@
                     } else {
                         button.style.backgroundColor = "#007bff";  // Reset to original for AI
                     }
-    
+
                     console.log("Votes array:", votes);
                 });
             });
-    
+
             HumanButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const image = button.dataset.image;
-    
+
                     // Deselect AI button if it is selected
                     const aiButton = button.closest(".image-item").querySelector(".AI-btn");
-                    if (AIButton.classList.contains("selected")) {
-                        AIButton.classList.remove("selected");
+                    if (aiButton.classList.contains("selected")) {
+                        aiButton.classList.remove("selected");
                     }
-    
+
                     // Toggle the Human button's selected state
                     button.classList.toggle("selected");
-    
+
                     // Update the votes array
                     updateVotesArray(image, button.classList.contains("selected"), false);
-    
+
                     // Remove selected style from AI button if Human is selected
                     if (button.classList.contains("selected")) {
                         button.style.backgroundColor = "#0056b3";  // Change to darker blue to indicate selected
-                        AIButton.style.backgroundColor = "#007bff";  // Reset to original for AI
+                        aiButton.style.backgroundColor = "#007bff";  // Reset to original for AI
                     } else {
                         button.style.backgroundColor = "#007bff";  // Reset to original for Human
                     }
-    
+
                     console.log("Votes array:", votes);
                 });
             });
-    
+
             // Handle favorite button clicks
             favoriteButtons.forEach(button => {
                 button.addEventListener("click", () => {
                     const image = button.dataset.image;
-    
+
                     // Deselect the current favorite if one exists
                     if (favorite) {
                         const currentFavoriteButton = document.querySelector(`.favorite-btn[data-image="${favorite}"]`);
@@ -231,20 +232,20 @@
                             currentFavoriteButton.style.backgroundColor = "#28a745";  // Reset favorite button to green
                         }
                     }
-    
+
                     // Mark the new favorite
                     button.classList.add("selected");
                     button.style.backgroundColor = "gold";  // Change to gold to indicate favorite
                     favorite = image;
-    
+
                     console.log("Favorite image:", favorite);
                 });
             });
-    
+
             // Helper function to update votes array
             function updateVotesArray(image, isSelected, isAI) {
                 const existingVoteIndex = votes.findIndex(v => v.image === image);
-    
+
                 if (isSelected) {
                     // If selected and not already in the array, add it
                     if (existingVoteIndex === -1) {
@@ -260,27 +261,27 @@
                     }
                 }
             }
-    
+
             // Handle form submission
             document.getElementById("game-form").onsubmit = async (e) => {
                 e.preventDefault();
                 const name = e.target.name.value;
-    
+
                 if (!name) {
                     alert("Please enter your name before submitting!");
                     return;
                 }
-    
+
                 if (votes.length < 10) {
                     alert("Please make a selection for all 10 images.");
                     return;
                 }
-    
+
                 if (!favorite) {
                     alert("Please select one favorite picture.");
                     return;
                 }
-    
+
                 try {
                     console.log("Submitting data...");
                     const response = await fetch("/submit", {
@@ -288,11 +289,11 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ votes, favorite, name }),
                     });
-    
+
                     if (!response.ok) {
                         throw new Error("Failed to submit your quiz. Please try again.");
                     }
-    
+
                     const result = await response.json();
                     alert(`Your score: ${result.score}`);
                     window.location.href = "/leaderboard";
@@ -303,7 +304,5 @@
             };
         });
     </script>
-    
-    
 </body>
 </html>
