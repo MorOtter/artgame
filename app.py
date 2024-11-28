@@ -65,8 +65,16 @@ def home():
 
 @app.route("/quiz")
 def quiz():
-    images = random.sample(Human_images + AI_images, 10)
-    return render_template("index.html", images=images)
+    try:
+        # Ensure that Human_images and ai_images are defined and not empty
+        if not Human_images or not ai_images:  # Ensure ai_images is used
+            raise ValueError("Image lists are empty or not defined.")
+
+        images = random.sample(Human_images + ai_images, 10)  # Use ai_images
+        return render_template("index.html", images=images)
+    except Exception as e:
+        print("Error in quiz route:", e)  # Print the error to the logs
+        return jsonify({"error": "An error occurred while loading the quiz."}), 500
 
 @app.route("/gallery")
 def gallery():
