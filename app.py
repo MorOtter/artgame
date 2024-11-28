@@ -3,7 +3,7 @@ import random
 import os
 import sqlite3
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='Templates')
 
 # Define the directory for human images
 HUMAN_DIR = "Static/Human/"
