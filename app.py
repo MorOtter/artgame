@@ -66,12 +66,25 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
+        # Get the list of image filenames from the Human and AI directories
+        human_images_dir = 'static/Human'
+        ai_images_dir = 'static/AI'
+
+        # List all files in the directories
+        Human_images = [f for f in os.listdir(human_images_dir) if os.path.isfile(os.path.join(human_images_dir, f))]
+        ai_images = [f for f in os.listdir(ai_images_dir) if os.path.isfile(os.path.join(ai_images_dir, f))]
+
         # Ensure that Human_images and ai_images are defined and not empty
-        if not Human_images or not ai_images:  # Ensure ai_images is used
+        if not Human_images or not ai_images:
             raise ValueError("Image lists are empty or not defined.")
 
-        images = random.sample(Human_images + ai_images, 10)  # Use ai_images
-        return render_template("index.html", images=images)
+        # Randomly sample images
+        images = random.sample(Human_images + ai_images, 10)  # Sample from the combined list
+
+        # Create full paths for the images to pass to the template
+        image_paths = [os.path.join('static/Human', img) if img in Human_images else os.path.join('static/AI', img) for img in images]
+
+        return render_template("index.html", images=image_paths)
     except Exception as e:
         print("Error in quiz route:", e)  # Print the error to the logs
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
