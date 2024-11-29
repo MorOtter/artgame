@@ -3,7 +3,6 @@ import random
 import os
 import sqlite3
 import logging
-from flask_limiter import Limiter
 from flask_cors import CORS
 
 app = Flask(__name__, template_folder='Templates')
@@ -63,7 +62,6 @@ def init_db():
                 VALUES (?, 0, 0, 0)
             ''', (image,))
 
-limiter = Limiter(app, key_func=get_remote_address)
 
 CORS(app)  # This will enable CORS for all routes
 
