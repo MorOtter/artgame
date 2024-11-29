@@ -90,11 +90,11 @@
                 <div class="stats">
                     <p>Voted as AI: {{ stat['AI_votes'] }} times</p>
                     <div class="progress-bar-container">
-                        <div class="progress-bar AI" style="width: {{ (stat['AI_votes'] + (stat['AI_votes'] == 0)) > 0 ? (stat['AI_votes'] / (stat['AI_votes'] + stat['Human_votes'])) * 100 : 0 }}%;"></div>
+                        <div class="progress-bar AI" style="width: {{ stat['AI_votes'] > 0 ? (stat['AI_votes'] / (stat['AI_votes'] + stat['Human_votes'])) * 100 : 0 }}%;"></div>
                     </div>
                     <p>Voted as Human: {{ stat['Human_votes'] }} times</p>
                     <div class="progress-bar-container">
-                        <div class="progress-bar Human" style="width: {{ (stat['Human_votes'] + (stat['Human_votes'] == 0)) > 0 ? (stat['Human_votes'] / (stat['AI_votes'] + stat['Human_votes'])) * 100 : 0 }}%;"></div>
+                        <div class="progress-bar Human" style="width: {{ stat['Human_votes'] > 0 ? (stat['Human_votes'] / (stat['AI_votes'] + stat['Human_votes'])) * 100 : 0 }}%;"></div>
                     </div>
                     <p>Marked as Favorite: {{ stat['favorite_count'] }} times</p>
                     <div class="progress-bar-container">
