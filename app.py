@@ -1,10 +1,15 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 import random
 import os
 import sqlite3
 import logging
+from flask_limiter import Limiter
+from flask_cors import CORS
 
 app = Flask(__name__, template_folder='Templates')
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define the directory for human images
 HUMAN_DIR = "Static/Human/"
@@ -58,6 +63,9 @@ def init_db():
                 VALUES (?, 0, 0, 0)
             ''', (image,))
 
+limiter = Limiter(app, key_func=get_remote_address)
+
+CORS(app)  # This will enable CORS for all routes
 
 @app.route("/")
 def home():
@@ -110,48 +118,58 @@ def gallery():
 
     return render_template("gallery.html", image_stats=image_stats)
 
+def validate_votes(votes):
+    """Validate the votes input."""
+    if not isinstance(votes, list) or len(votes) != 10:
+        abort(400, description="You must make a selection for all 10 images.")
+    for vote in votes:
+        if 'image' not in vote or 'is_AI' not in vote:
+            abort(400, description="Each vote must contain 'image' and 'is_AI' fields.")
 
+def update_votes(conn, votes):
+    """Update the vote counts in the database and return the correct score."""
+    correct = 0
+    for vote in votes:
+        image = vote["image"]
+        guessed_AI = vote["is_AI"]
+        is_ai = "AI/" in image
 
+        if guessed_AI == is_ai:
+            correct += 1
+
+        # Update image stats in the database
+        if guessed_AI:
+            conn.execute('UPDATE image_stats SET AI_votes = AI_votes + 1 WHERE image = ?', (image,))
+        else:
+            conn.execute('UPDATE image_stats SET Human_votes = Human_votes + 1 WHERE image = ?', (image,))
+    return correct
+
+def save_favorite_and_score(conn, favorite, name, score):
+    """Update the favorite count and save the player's score."""
+    conn.execute('UPDATE image_stats SET favorite_count = favorite_count + 1 WHERE image = ?', (favorite,))
+    conn.execute('INSERT INTO scores (name, score) VALUES (?, ?)', (name, score))
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    """Handle the submission of votes and update the database."""
     data = request.json
     votes = data.get("votes", [])
     favorite = data.get("favorite")
     name = data.get("name")
-    correct = 0
 
-    if len(votes) != 10:
-        return jsonify({"error": "You must make a selection for all 10 images."}), 400
+    # Validate input
+    validate_votes(votes)
 
     with get_db_connection() as conn:
-        # Calculate score and update image stats
-        for vote in votes:
-            image = vote["image"]
-            guessed_AI = vote["is_AI"]
-            is_ai = "AI/" in image
+        try:
+            correct = update_votes(conn, votes)
+            save_favorite_and_score(conn, favorite, name, correct)
+            conn.commit()  # Commit the changes to the database
+        except Exception as e:
+            logging.error(f"Error during submit operation: {e}")
+            abort(500, description="An error occurred while processing your submission.")
 
-            # Update correct score count
-            if guessed_AI == is_ai:
-                correct += 1
-
-            # Update image stats in the database
-            try:
-                if guessed_AI:
-                    conn.execute('UPDATE image_stats SET AI_votes = AI_votes + 1 WHERE image = ?', (image,))
-                else:
-                    conn.execute('UPDATE image_stats SET Human_votes = Human_votes + 1 WHERE image = ?', (image,))
-                conn.commit()  # Commit the changes to the database
-            except Exception as e:
-                print(f"Error updating image stats for {image}: {e}")  # Log the error
-
-        # Update favorite count
-        conn.execute('UPDATE image_stats SET favorite_count = favorite_count + 1 WHERE image = ?', (favorite,))
-
-        # Save player score
-        conn.execute('INSERT INTO scores (name, score) VALUES (?, ?)', (name, correct))
-
-    return jsonify({"score": correct})
+    return jsonify({"score": correct}), 200
 
 
 
