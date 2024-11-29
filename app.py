@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import random
 import os
 import sqlite3
+import logging
 
 app = Flask(__name__, template_folder='Templates')
 
@@ -66,13 +67,19 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
-        # Define the directories for Human and AI images
         human_images_dir = 'static/Human'
         ai_images_dir = 'static/AI'
+
+        # Log the directories being accessed
+        logging.info(f"Checking for images in: {human_images_dir} and {ai_images_dir}")
 
         # List all files in the directories
         Human_images = [f for f in os.listdir(human_images_dir) if os.path.isfile(os.path.join(human_images_dir, f))]
         AI_images = [f for f in os.listdir(ai_images_dir) if os.path.isfile(os.path.join(ai_images_dir, f))]
+
+        # Log the retrieved images
+        logging.info(f"Human images: {Human_images}")
+        logging.info(f"AI images: {AI_images}")
 
         # Ensure that Human_images and AI_images are defined and not empty
         if not Human_images or not AI_images:
@@ -86,7 +93,7 @@ def quiz():
 
         return render_template("index.html", images=sampled_images)
     except Exception as e:
-        print("Error in quiz route:", e)  # Print the error to the logs
+        logging.error(f"Error in quiz route: {e}")
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
 
 @app.route("/gallery")
