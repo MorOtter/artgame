@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, url_for
 import random
 import os
 import sqlite3
@@ -93,7 +93,12 @@ def quiz():
         # Randomly sample images
         sampled_images = random.sample(images, min(10, len(images)))  # Sample up to 10 images
 
-        return render_template("index.html", images=sampled_images)
+        # Generate the correct paths for images using `url_for`
+        sampled_images_with_paths = [
+            url_for('static', filename=f"{'Human' if 'Human' in img else 'AI'}/{img}") for img in sampled_images
+        ]
+
+        return render_template("index.html", images=sampled_images_with_paths)
     except Exception as e:
         logging.error(f"Error in quiz route: {e}")
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
