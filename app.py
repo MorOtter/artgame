@@ -10,9 +10,9 @@ app = Flask(__name__, template_folder='Templates')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Define directories for human and AI images (case-sensitive)
-HUMAN_DIR = "Static/Human"
-AI_DIR = "Static/AI"
+# Define directories for human and AI images (use lowercase "static" to match Flask convention)
+HUMAN_DIR = "static/Human"
+AI_DIR = "static/AI"
 
 # Function to list images in the directory, with fallback to an empty list
 def get_image_list(directory):
@@ -69,7 +69,6 @@ CORS(app)  # This will enable CORS for all routes
 @app.route("/")
 def home():
     return render_template("home.html")
-
 
 @app.route("/quiz")
 def quiz():
