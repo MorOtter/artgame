@@ -10,18 +10,9 @@ app = Flask(__name__, template_folder='Templates')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Define directories for human and AI images
-HUMAN_DIR = "static/Human"
-AI_DIR = "static/AI"
-
-# Check if the directories exist, create them if they don't
-if not os.path.exists(HUMAN_DIR):
-    os.makedirs(HUMAN_DIR)
-    logging.warning(f"Directory '{HUMAN_DIR}' did not exist. Created it.")
-
-if not os.path.exists(AI_DIR):
-    os.makedirs(AI_DIR)
-    logging.warning(f"Directory '{AI_DIR}' did not exist. Created it.")
+# Define directories for human and AI images (case-sensitive)
+HUMAN_DIR = "Static/Human"
+AI_DIR = "Static/AI"
 
 # Function to list images in the directory, with fallback to an empty list
 def get_image_list(directory):
