@@ -97,10 +97,14 @@ def quiz():
             url_for('static', filename=f"{'Human' if 'Human' in img else 'AI'}/{img}") for img in sampled_images
         ]
 
+        # Log the paths being generated
+        logging.info(f"Sampled images with paths: {sampled_images_with_paths}")
+
         return render_template("index.html", images=sampled_images_with_paths)
     except Exception as e:
         logging.error(f"Error in quiz route: {e}")
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
+
 
 @app.route("/gallery")
 def gallery():

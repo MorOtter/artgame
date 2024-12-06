@@ -136,7 +136,9 @@
         <div id="images-container">
             {% for image in images %}
                 <div class="image-item">
-                    <img src="{{ url_for('static', filename=image) }}" alt="Image">
+                    <!-- Added this line to display the image URL -->
+                    <p>Image URL: {{ image }}</p>
+                    <img src="{{ image }}" alt="Image">
                     <div class="button-group">
                         <button type="button" class="AI-btn" data-image="{{ image }}">AI</button>
                         <button type="button" class="Human-btn" data-image="{{ image }}">Human</button>
