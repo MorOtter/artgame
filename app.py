@@ -10,19 +10,31 @@ app = Flask(__name__, template_folder='Templates')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Define the directory for human images
-HUMAN_DIR = "Static/Human/"
+# Define directories for human and AI images
+HUMAN_DIR = "static/Human"
+AI_DIR = "static/AI"
 
-# Check if the directory exists
+# Check if the directories exist, create them if they don't
 if not os.path.exists(HUMAN_DIR):
-    print(f"Warning: The directory '{HUMAN_DIR}' does not exist.")
-    Human_images = []  # Set to an empty list or handle as needed
-else:
-    # List images in the directory
-    Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+    os.makedirs(HUMAN_DIR)
+    print(f"Warning: The directory '{HUMAN_DIR}' did not exist. Created it.")
 
-AI_DIR = "Static/AI/"
-ai_images = [f"AI/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+if not os.path.exists(AI_DIR):
+    os.makedirs(AI_DIR)
+    print(f"Warning: The directory '{AI_DIR}' did not exist. Created it.")
+
+# List images in the directories, handle missing directories gracefully
+try:
+    Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+except FileNotFoundError:
+    logging.warning(f"Directory '{HUMAN_DIR}' not found. Setting Human_images to an empty list.")
+    Human_images = []
+
+try:
+    AI_images = [f"/AI/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+except FileNotFoundError:
+    logging.warning(f"Directory '{AI_DIR}' not found. Setting AI_images to an empty list.")
+    AI_images = []
 
 DATABASE = 'database.db'  # Path for the SQLite database file
 
@@ -55,13 +67,12 @@ def init_db():
         ''')
 
         # Populate image stats table with images if not already present
-        images = Human_images + ai_images
+        images = Human_images + AI_images
         for image in images:
             conn.execute('''
                 INSERT OR IGNORE INTO image_stats (image, AI_votes, Human_votes, favorite_count)
                 VALUES (?, 0, 0, 0)
             ''', (image,))
-
 
 CORS(app)  # This will enable CORS for all routes
 
@@ -73,15 +84,12 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
-        human_images_dir = 'static/Human'
-        ai_images_dir = 'static/AI'
-
         # Log the directories being accessed
-        logging.info(f"Checking for images in: {human_images_dir} and {ai_images_dir}")
+        logging.info(f"Checking for images in: {HUMAN_DIR} and {AI_DIR}")
 
         # List all files in the directories
-        Human_images = [f for f in os.listdir(human_images_dir) if os.path.isfile(os.path.join(human_images_dir, f))]
-        AI_images = [f for f in os.listdir(ai_images_dir) if os.path.isfile(os.path.join(ai_images_dir, f))]
+        Human_images = [f for f in os.listdir(HUMAN_DIR) if os.path.isfile(os.path.join(HUMAN_DIR, f))]
+        AI_images = [f for f in os.listdir(AI_DIR) if os.path.isfile(os.path.join(AI_DIR, f))]
 
         # Log the retrieved images
         logging.info(f"Human images: {Human_images}")
@@ -95,7 +103,7 @@ def quiz():
         images = Human_images + AI_images
 
         # Randomly sample images
-        sampled_images = random.sample(images, 10)  # Sample 10 images
+        sampled_images = random.sample(images, min(10, len(images)))  # Sample up to 10 images
 
         return render_template("index.html", images=sampled_images)
     except Exception as e:
@@ -112,7 +120,7 @@ def gallery():
         ''').fetchall()
     
     # Debugging print to verify data
-    print("Image Stats Data Retrieved:", image_stats)
+    logging.info("Image Stats Data Retrieved:", image_stats)
 
     return render_template("gallery.html", image_stats=image_stats)
 
@@ -169,8 +177,6 @@ def submit():
 
     return jsonify({"score": correct}), 200
 
-
-
 @app.route("/leaderboard")
 def leaderboard():
     page = int(request.args.get('page', 1))  # Default to page 1 if not specified
@@ -185,7 +191,6 @@ def leaderboard():
         ''', (page_size, offset)).fetchall()
 
     return render_template("leaderboard.html", leaderboard=leaderboard_data, current_page=page)
-
 
 if __name__ == "__main__":
     # Initialize the database before running the app
