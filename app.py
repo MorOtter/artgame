@@ -17,24 +17,23 @@ AI_DIR = "static/AI"
 # Check if the directories exist, create them if they don't
 if not os.path.exists(HUMAN_DIR):
     os.makedirs(HUMAN_DIR)
-    print(f"Warning: The directory '{HUMAN_DIR}' did not exist. Created it.")
+    logging.warning(f"Directory '{HUMAN_DIR}' did not exist. Created it.")
 
 if not os.path.exists(AI_DIR):
     os.makedirs(AI_DIR)
-    print(f"Warning: The directory '{AI_DIR}' did not exist. Created it.")
+    logging.warning(f"Directory '{AI_DIR}' did not exist. Created it.")
 
-# List images in the directories, handle missing directories gracefully
-try:
-    Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
-except FileNotFoundError:
-    logging.warning(f"Directory '{HUMAN_DIR}' not found. Setting Human_images to an empty list.")
-    Human_images = []
+# Function to list images in the directory, with fallback to an empty list
+def get_image_list(directory):
+    try:
+        return [f for f in os.listdir(directory) if f.endswith(('.png', '.jpg', '.jpeg'))]
+    except FileNotFoundError:
+        logging.warning(f"Directory '{directory}' not found.")
+        return []
 
-try:
-    AI_images = [f"/AI/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
-except FileNotFoundError:
-    logging.warning(f"Directory '{AI_DIR}' not found. Setting AI_images to an empty list.")
-    AI_images = []
+# Get images
+Human_images = get_image_list(HUMAN_DIR)
+AI_images = get_image_list(AI_DIR)
 
 DATABASE = 'database.db'  # Path for the SQLite database file
 
@@ -84,23 +83,21 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
-        # Log the directories being accessed
-        logging.info(f"Checking for images in: {HUMAN_DIR} and {AI_DIR}")
-
-        # List all files in the directories
-        Human_images = [f for f in os.listdir(HUMAN_DIR) if os.path.isfile(os.path.join(HUMAN_DIR, f))]
-        AI_images = [f for f in os.listdir(AI_DIR) if os.path.isfile(os.path.join(AI_DIR, f))]
+        # Get updated lists of images
+        Human_images = get_image_list(HUMAN_DIR)
+        AI_images = get_image_list(AI_DIR)
 
         # Log the retrieved images
         logging.info(f"Human images: {Human_images}")
         logging.info(f"AI images: {AI_images}")
 
-        # Ensure that Human_images and AI_images are defined and not empty
-        if not Human_images or not AI_images:
-            raise ValueError("Image lists are empty or not defined.")
-
         # Combine the images
         images = Human_images + AI_images
+
+        # If there are no images, provide a fallback message and return empty results
+        if not images:
+            logging.warning("No images available for the quiz. Returning fallback response.")
+            return render_template("index.html", images=[])
 
         # Randomly sample images
         sampled_images = random.sample(images, min(10, len(images)))  # Sample up to 10 images
@@ -120,7 +117,7 @@ def gallery():
         ''').fetchall()
     
     # Debugging print to verify data
-    logging.info("Image Stats Data Retrieved:", image_stats)
+    logging.info(f"Image Stats Data Retrieved: {image_stats}")
 
     return render_template("gallery.html", image_stats=image_stats)
 
