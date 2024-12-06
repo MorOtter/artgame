@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, abort
+from flask import Flask, render_template, request, jsonify, abort, url_for
 import random
 import os
 import sqlite3
@@ -13,27 +13,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Define the directory for human images
 HUMAN_DIR = "static/Human"
 AI_DIR = "static/AI"
-
-# Safely check if the directories exist and populate the image lists
-try:
-    if not os.path.exists(HUMAN_DIR):
-        logging.warning(f"The directory '{HUMAN_DIR}' does not exist. Setting Human_images to an empty list.")
-        Human_images = []
-    else:
-        Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
-except Exception as e:
-    logging.error(f"Error accessing {HUMAN_DIR}: {e}")
-    Human_images = []
-
-try:
-    if not os.path.exists(AI_DIR):
-        logging.warning(f"The directory '{AI_DIR}' does not exist. Setting AI_images to an empty list.")
-        ai_images = []
-    else:
-        ai_images = [f"/AI/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
-except Exception as e:
-    logging.error(f"Error accessing {AI_DIR}: {e}")
-    ai_images = []
 
 DATABASE = 'database.db'  # Path for the SQLite database file
 
@@ -66,7 +45,7 @@ def init_db():
         ''')
 
         # Populate image stats table with images if not already present
-        images = Human_images + ai_images
+        images = os.listdir(HUMAN_DIR) + os.listdir(AI_DIR)
         for image in images:
             conn.execute('''
                 INSERT OR IGNORE INTO image_stats (image, AI_votes, Human_votes, favorite_count)
@@ -115,7 +94,13 @@ def quiz():
         sampled_images = sampled_ai_images + sampled_human_images
         random.shuffle(sampled_images)
 
-        return render_template("index.html", images=sampled_images)
+        # Convert image paths to be accessible using `url_for`
+        sampled_images_with_paths = [
+            url_for('static', filename=f"{'AI' if img in sampled_ai_images else 'Human'}/{img}")
+            for img in sampled_images
+        ]
+
+        return render_template("index.html", images=sampled_images_with_paths)
     except Exception as e:
         logging.error(f"Error in quiz route: {e}")
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
