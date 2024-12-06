@@ -174,18 +174,31 @@ def submit():
 
 @app.route("/leaderboard")
 def leaderboard():
-    page = int(request.args.get('page', 1))  # Default to page 1 if not specified
-    page_size = 10
-    offset = (page - 1) * page_size
+    try:
+        page = int(request.args.get('page', 1))  # Default to page 1 if not specified
+        if page < 1:
+            page = 1
 
-    with get_db_connection() as conn:
-        leaderboard_data = conn.execute('''
-            SELECT name, score FROM scores
-            ORDER BY score DESC, id ASC
-            LIMIT ? OFFSET ?
-        ''', (page_size, offset)).fetchall()
+        page_size = 10
+        offset = (page - 1) * page_size
 
-    return render_template("leaderboard.html", leaderboard=leaderboard_data, current_page=page)
+        with get_db_connection() as conn:
+            leaderboard_data = conn.execute('''
+                SELECT name, score FROM scores
+                ORDER BY score DESC, id ASC
+                LIMIT ? OFFSET ?
+            ''', (page_size, offset)).fetchall()
+
+        # If no leaderboard data is found, pass an empty list and a helpful message
+        if not leaderboard_data:
+            logging.info("No leaderboard data available.")
+            return render_template("leaderboard.html", leaderboard=[], current_page=page, message="No scores yet. Play the game to get on the leaderboard!")
+
+        return render_template("leaderboard.html", leaderboard=leaderboard_data, current_page=page)
+    except Exception as e:
+        logging.error(f"Error loading leaderboard: {e}")
+        return jsonify({"error": "An error occurred while loading the leaderboard."}), 500
+
 
 if __name__ == "__main__":
     # Initialize the database before running the app
