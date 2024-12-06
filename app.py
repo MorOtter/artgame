@@ -7,6 +7,17 @@ from flask_cors import CORS
 
 app = Flask(__name__, template_folder='Templates')
 
+@app.route("/quiz")
+def quiz():
+    try:
+        print("Current working directory:", os.getcwd())
+        human_images_dir = 'Static/Human'  # Note capital S
+        ai_images_dir = 'Static/AI'        # Note capital S
+        print("Looking for directories:", human_images_dir, ai_images_dir)
+        print("Directory exists?", os.path.exists(human_images_dir), os.path.exists(ai_images_dir))
+        
+        # Rest of your code...
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
