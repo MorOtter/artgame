@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, abort, url_for
+from flask import Flask, render_template, request, jsonify, abort
 import random
 import os
 import sqlite3
@@ -10,21 +10,30 @@ app = Flask(__name__, template_folder='Templates')
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Define directories for human and AI images (use lowercase "static" to match Flask convention)
+# Define the directory for human images
 HUMAN_DIR = "static/Human"
 AI_DIR = "static/AI"
 
-# Function to list images in the directory, with fallback to an empty list
-def get_image_list(directory):
-    try:
-        return [f for f in os.listdir(directory) if f.endswith(('.png', '.jpg', '.jpeg'))]
-    except FileNotFoundError:
-        logging.warning(f"Directory '{directory}' not found.")
-        return []
+# Safely check if the directories exist and populate the image lists
+try:
+    if not os.path.exists(HUMAN_DIR):
+        logging.warning(f"The directory '{HUMAN_DIR}' does not exist. Setting Human_images to an empty list.")
+        Human_images = []
+    else:
+        Human_images = [f"/Human/{img}" for img in os.listdir(HUMAN_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+except Exception as e:
+    logging.error(f"Error accessing {HUMAN_DIR}: {e}")
+    Human_images = []
 
-# Get images
-Human_images = get_image_list(HUMAN_DIR)
-AI_images = get_image_list(AI_DIR)
+try:
+    if not os.path.exists(AI_DIR):
+        logging.warning(f"The directory '{AI_DIR}' does not exist. Setting AI_images to an empty list.")
+        ai_images = []
+    else:
+        ai_images = [f"/AI/{img}" for img in os.listdir(AI_DIR) if img.endswith(('.png', '.jpg', '.jpeg'))]
+except Exception as e:
+    logging.error(f"Error accessing {AI_DIR}: {e}")
+    ai_images = []
 
 DATABASE = 'database.db'  # Path for the SQLite database file
 
@@ -57,7 +66,7 @@ def init_db():
         ''')
 
         # Populate image stats table with images if not already present
-        images = Human_images + AI_images
+        images = Human_images + ai_images
         for image in images:
             conn.execute('''
                 INSERT OR IGNORE INTO image_stats (image, AI_votes, Human_votes, favorite_count)
@@ -73,38 +82,43 @@ def home():
 @app.route("/quiz")
 def quiz():
     try:
-        # Get updated lists of images
-        Human_images = get_image_list(HUMAN_DIR)
-        AI_images = get_image_list(AI_DIR)
+        # Log the directories being accessed
+        logging.info(f"Checking for images in: {HUMAN_DIR} and {AI_DIR}")
+
+        # List all files in the directories, if they exist
+        if os.path.exists(HUMAN_DIR):
+            Human_images = [f for f in os.listdir(HUMAN_DIR) if os.path.isfile(os.path.join(HUMAN_DIR, f))]
+        else:
+            Human_images = []
+
+        if os.path.exists(AI_DIR):
+            AI_images = [f for f in os.listdir(AI_DIR) if os.path.isfile(os.path.join(AI_DIR, f))]
+        else:
+            AI_images = []
 
         # Log the retrieved images
         logging.info(f"Human images: {Human_images}")
         logging.info(f"AI images: {AI_images}")
 
-        # Combine the images
-        images = Human_images + AI_images
+        # Ensure that Human_images and AI_images are defined and not empty
+        if not Human_images or not AI_images:
+            raise ValueError("Image lists are empty or not defined.")
 
-        # If there are no images, provide a fallback message and return empty results
-        if not images:
-            logging.warning("No images available for the quiz. Returning fallback response.")
-            return render_template("index.html", images=[])
+        # Randomly select between 3 to 7 images from AI, and the rest from Human to make a total of 10
+        num_ai_images = random.randint(3, 7)
+        num_human_images = 10 - num_ai_images
 
-        # Randomly sample images
-        sampled_images = random.sample(images, min(10, len(images)))  # Sample up to 10 images
+        sampled_ai_images = random.sample(AI_images, min(len(AI_images), num_ai_images))
+        sampled_human_images = random.sample(Human_images, min(len(Human_images), num_human_images))
 
-        # Generate the correct paths for images using `url_for`
-        sampled_images_with_paths = [
-            url_for('static', filename=f"{'Human' if 'Human' in img else 'AI'}/{img}") for img in sampled_images
-        ]
+        # Combine and shuffle the sampled images
+        sampled_images = sampled_ai_images + sampled_human_images
+        random.shuffle(sampled_images)
 
-        # Log the paths being generated
-        logging.info(f"Sampled images with paths: {sampled_images_with_paths}")
-
-        return render_template("index.html", images=sampled_images_with_paths)
+        return render_template("index.html", images=sampled_images)
     except Exception as e:
         logging.error(f"Error in quiz route: {e}")
         return jsonify({"error": "An error occurred while loading the quiz."}), 500
-
 
 @app.route("/gallery")
 def gallery():
@@ -116,7 +130,7 @@ def gallery():
         ''').fetchall()
     
     # Debugging print to verify data
-    logging.info(f"Image Stats Data Retrieved: {image_stats}")
+    logging.info("Image Stats Data Retrieved: %s", image_stats)
 
     return render_template("gallery.html", image_stats=image_stats)
 
